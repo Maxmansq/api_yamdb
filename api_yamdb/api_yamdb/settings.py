@@ -104,3 +104,5 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = ((BASE_DIR / 'static/'),)
 
 AUTH_USER_MODEL = 'users.MyUser'
+
+LANGUAGE_CODE = 'ru-RU'
