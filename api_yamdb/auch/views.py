@@ -5,7 +5,7 @@ from django.http import JsonResponse
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework import status
+from rest_framework import status, response
 from django.conf import settings
 
 from users.models import MyUser
@@ -17,12 +17,13 @@ from auch.serializers import SignupSerializer, TokenSerializer
 def signup(request):
     serializer = SignupSerializer(data=request.data)
     if not serializer.is_valid():
-        return JsonResponse(
-            {'error': 'Ошибка валидации'},
-            status=status.HTTP_400_BAD_REQUEST
-        )
+        return response.Response(serializer.errors,
+                                 status=status.HTTP_400_BAD_REQUEST)
     email = serializer.validated_data['email']
     username = serializer.validated_data['username']
+    if username == 'me':
+        return response.Response(serializer.errors,
+                                 status=status.HTTP_400_BAD_REQUEST)
     user, _ = MyUser.objects.get_or_create(username=username,
                                            defaults={'email': email},)
     confirmation_code = default_token_generator.make_token(user)
@@ -33,8 +34,7 @@ def signup(request):
         recipient_list=[email,],
         fail_silently=False,
     )
-    return JsonResponse({'message': 'Код подтверждения отправлен на email'},
-                        status=status.HTTP_200_OK)
+    return response.Response(serializer.data, status=status.HTTP_200_OK)
 
 
 @api_view(['POST'])
