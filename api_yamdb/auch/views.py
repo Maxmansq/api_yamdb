@@ -42,10 +42,8 @@ def signup(request):
 def get_token(request):
     serializer = TokenSerializer(data=request.data)
     if not serializer.is_valid():
-        return JsonResponse(
-            {'error': 'Ошибка валидации'},
-            status=status.HTTP_400_BAD_REQUEST
-        )
+        return response.Response(serializer.errors,
+                                 status=status.HTTP_400_BAD_REQUEST)
     username = serializer.validated_data['username']
     confirmation_code = serializer.validated_data['confirmation_code']
     user = get_object_or_404(MyUser, username=username)
@@ -53,5 +51,5 @@ def get_token(request):
         refresh = RefreshToken.for_user(user)
         return JsonResponse({'token': str(refresh.access_token)},
                             status=status.HTTP_200_OK)
-    return JsonResponse({'error': 'Неверный код'},
-                        status=status.HTTP_400_BAD_REQUEST)
+    return response.Response(serializer.errors,
+                             status=status.HTTP_400_BAD_REQUEST)
