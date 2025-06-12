@@ -20,3 +20,9 @@ class MyUser(AbstractUser):
     class Meta():
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
+
+    @property
+    def effective_role(self):
+        if self.is_superuser:
+            return self.Role.ADMIN
+        return self.role

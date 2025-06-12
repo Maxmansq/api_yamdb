@@ -21,9 +21,6 @@ def signup(request):
                                  status=status.HTTP_400_BAD_REQUEST)
     email = serializer.validated_data['email']
     username = serializer.validated_data['username']
-    if username == 'me':
-        return response.Response(serializer.errors,
-                                 status=status.HTTP_400_BAD_REQUEST)
     user, _ = MyUser.objects.get_or_create(username=username,
                                            defaults={'email': email},)
     confirmation_code = default_token_generator.make_token(user)
@@ -49,7 +46,7 @@ def get_token(request):
     user = get_object_or_404(MyUser, username=username)
     if default_token_generator.check_token(user, confirmation_code):
         refresh = RefreshToken.for_user(user)
-        return JsonResponse({'token': str(refresh.access_token)},
-                            status=status.HTTP_200_OK)
+        return response.Response({'token': str(refresh.access_token)},
+                                 status=status.HTTP_200_OK)
     return response.Response(serializer.errors,
                              status=status.HTTP_400_BAD_REQUEST)

@@ -3,11 +3,13 @@ from rest_framework.routers import DefaultRouter
 
 from . import views
 from auch.views import signup, get_token
+from users.views import UsersViewSet
 
 router = DefaultRouter()
 router.register('categories', views.CategoryViewSet, basename='categories')
 router.register('genres', views.GenreViewSet, basename='genres')
 router.register('titles', views.TitleViewSet, basename='titles')
+router.register('users', UsersViewSet, basename='users')
 
 urlpatterns = [
     path('', include(router.urls)),
