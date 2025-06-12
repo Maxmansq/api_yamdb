@@ -15,7 +15,6 @@ class CreateValidateSerializers(serializers.ModelSerializer):
         })
 
     def validate(self, attrs):
-        role = attrs.get("role")
         email = attrs.get("email")
         username = attrs.get("username")
         reg_user = MyUser.objects.filter(username=username).first()
