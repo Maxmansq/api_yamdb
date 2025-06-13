@@ -1,20 +1,23 @@
 from django.db.models import Avg
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets, mixins, filters
 from .serializers import CategorySerializer, GenreSerializer, TitleReadSerializer, TitleWriteSerializer
+
 from reviews.models import Category, Genre, Title
+from api.permissions import IsAdminOrReadOnly
 
-class IsAdminOrReadOnly(permissions.BasePermission):
-    def has_permission(self, request, view):
-        return (
-            request.method in permissions.SAFE_METHODS or
-            request.user.is_authenticated and request.user.is_admin
-        )
 
-class CategoryViewSet(viewsets.ModelViewSet):
+class CategoryViewSet(
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet,
+):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = [IsAdminOrReadOnly]
+    permission_classes = [IsAdminOrReadOnly,]
     lookup_field = 'slug'
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -22,11 +25,12 @@ class CategoryViewSet(viewsets.ModelViewSet):
         if name:
             queryset = queryset.filter(name__icontains=name)
         return queryset
+
 
 class GenreViewSet(viewsets.ModelViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    permission_classes = [IsAdminOrReadOnly]
+    permission_classes = [IsAdminOrReadOnly,]
     lookup_field = 'slug'
 
     def get_queryset(self):
@@ -36,8 +40,9 @@ class GenreViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(name__icontains=name)
         return queryset
 
+
 class TitleViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsAdminOrReadOnly]
+    permission_classes = [IsAdminOrReadOnly,]
     queryset = Title.objects.all()
     
     def get_queryset(self):
