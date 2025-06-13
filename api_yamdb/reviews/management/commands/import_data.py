@@ -1,11 +1,13 @@
 import csv
 import os
+
 from django.core.management.base import BaseCommand
 from django.conf import settings
+
 from reviews.models import Category, Genre, Title, Review
 from django.contrib.auth import get_user_model
+from users.models import MyUser
 
-User = get_user_model()
 
 class Command(BaseCommand):
     help = 'Import data from CSV files'
@@ -19,13 +21,14 @@ class Command(BaseCommand):
             with open(users_path, encoding='utf-8') as f:
                 reader = csv.DictReader(f)
                 for row in reader:
-                    User.objects.get_or_create(
+                    MyUser.objects.get_or_create(
                         id=row['id'],
                         username=row['username'],
                         email=row['email'],
                     )
         else:
-            self.stdout.write(self.style.WARNING('users.csv not found, skipping user import'))
+            self.stdout.write(self.style.WARNING('users.csv not found, '
+                                                 'skipping user import'))
 
         # 2. Импорт категорий
         with open(os.path.join(base_path, 'category.csv'), encoding='utf-8') as f:
@@ -74,7 +77,7 @@ class Command(BaseCommand):
             for row in reader:
                 try:
                     # Проверяем существование пользователя
-                    user = User.objects.get(id=row['author'])
+                    user = MyUser.objects.get(id=row['author'])
                     
                     # Проверяем существование произведения
                     title = Title.objects.get(id=row['title_id'])
@@ -87,7 +90,7 @@ class Command(BaseCommand):
                         score=row['score'],
                         pub_date=row['pub_date']
                     )
-                except User.DoesNotExist:
+                except MyUser.DoesNotExist:
                     self.stdout.write(self.style.ERROR(f"User {row['author']} not found for review {row['id']}"))
                 except Title.DoesNotExist:
                     self.stdout.write(self.style.ERROR(f"Title {row['title_id']} not found for review {row['id']}"))
