@@ -1,6 +1,9 @@
 from django.db.models import Avg
 from rest_framework import viewsets, mixins, filters
-from .serializers import CategorySerializer, GenreSerializer, TitleReadSerializer, TitleWriteSerializer
+from .serializers import (CategorySerializer,
+                          GenreSerializer,
+                          TitleReadSerializer,
+                          TitleWriteSerializer)
 
 from reviews.models import Category, Genre, Title
 from api.permissions import IsAdminOrReadOnly
@@ -50,7 +53,8 @@ class GenreViewSet(
 
 class TitleViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAdminOrReadOnly,]
-    queryset = Title.objects.all()
+    queryset = Title.objects.all().order_by('id')
+    http_method_names = ['get', 'patch', 'post', 'delete']
     
     def get_queryset(self):
         queryset = super().get_queryset()
