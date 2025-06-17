@@ -2,10 +2,8 @@ import csv
 import os
 
 from django.core.management.base import BaseCommand
-from django.conf import settings
 
 from reviews.models import Category, Genre, Title, Review
-from django.contrib.auth import get_user_model
 from users.models import MyUser
 
 
