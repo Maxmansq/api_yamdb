@@ -6,23 +6,23 @@ from auch.views import signup, get_token
 from users.views import UsersViewSet
 
 router = DefaultRouter()
-router.register('categories', views.CategoryViewSet, basename='categories')
-router.register('genres', views.GenreViewSet, basename='genres')
-router.register('titles', views.TitleViewSet, basename='titles')
-router.register('users', UsersViewSet, basename='users')
+router.register("categories", views.CategoryViewSet, basename="categories")
+router.register("genres", views.GenreViewSet, basename="genres")
+router.register("titles", views.TitleViewSet, basename="titles")
+router.register("users", UsersViewSet, basename="users")
 router.register(
-    r'titles/(?P<title_id>\d+)/reviews',
+    r"titles/(?P<title_id>\d+)/reviews",
     views.ReviewViewSet,
-    basename='reviews'
+    basename="reviews"
 )
 router.register(
-    r'titles/(?P<title_id>\d+)/reviews/(?P<review_id>\d+)/comments',
+    r"titles/(?P<title_id>\d+)/reviews/(?P<review_id>\d+)/comments",
     views.CommentViewSet,
-    basename='comments'
+    basename="comments"
 )
 
 urlpatterns = [
-    path('', include(router.urls)),
-    path('auth/signup/', signup, name='signup'),
-    path('auth/token/', get_token, name='get_token'),
+    path("", include(router.urls)),
+    path("auth/signup/", signup, name="signup"),
+    path("auth/token/", get_token, name="get_token"),
 ]

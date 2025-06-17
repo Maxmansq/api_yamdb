@@ -5,7 +5,7 @@ from users.models import MyUser
 
 
 UserAdmin.fieldsets += (
-    ('Дополнительные данные о пользователе', {'fields': ('bio', 'role',)}),
+    ("Дополнительные данные о пользователе", {"fields": ("bio", "role",)}),
 )
 
 admin.site.register(MyUser, UserAdmin)

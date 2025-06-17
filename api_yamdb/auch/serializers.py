@@ -9,7 +9,7 @@ class SignupSerializer(CreateValidateSerializers):
 
     class Meta:
         model = MyUser
-        fields = ['email', 'username',]
+        fields = ["email", "username"]
 
 
 class TokenSerializer(serializers.Serializer):

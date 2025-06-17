@@ -10,89 +10,86 @@ from users.models import MyUser
 
 
 class Command(BaseCommand):
-    help = 'Import data from CSV files'
+    help = "Import data from CSV files"
 
-    def handle(self, *args, **options):
-        base_path = os.path.join(settings.BASE_DIR, 'static', 'data')
-        
-        # 1. Импорт пользователей (если доступен)
-        users_path = os.path.join(base_path, 'users.csv')
-        if os.path.exists(users_path):
-            with open(users_path, encoding='utf-8') as f:
-                reader = csv.DictReader(f)
-                for row in reader:
-                    MyUser.objects.get_or_create(
-                        id=row['id'],
-                        username=row['username'],
-                        email=row['email'],
-                    )
-        else:
-            self.stdout.write(self.style.WARNING('users.csv not found, '
-                                                 'skipping user import'))
+    def import_users(self, base_path):
+        users_path = os.path.join(base_path, "users.csv")
+        if not os.path.exists(users_path):
+            self.stdout.write(self.style.WARNING(
+                "users.csv not found, skipping user import"))
+            return
 
-        # 2. Импорт категорий
-        with open(os.path.join(base_path, 'category.csv'), encoding='utf-8') as f:
-            reader = csv.DictReader(f)
-            for row in reader:
+        with open(users_path, encoding="utf-8") as f:
+            for row in csv.DictReader(f):
+                MyUser.objects.get_or_create(
+                    id=row["id"],
+                    username=row["username"],
+                    email=row["email"],
+                )
+
+    def import_categories(self, base_path):
+        with open(os.path.join(base_path, "category.csv"),
+                  encoding="utf-8") as f:
+            for row in csv.DictReader(f):
                 Category.objects.get_or_create(
-                    id=row['id'],
-                    name=row['name'],
-                    slug=row['slug']
+                    id=row["id"],
+                    name=row["name"],
+                    slug=row["slug"]
                 )
 
-        # 3. Импорт жанров
-        with open(os.path.join(base_path, 'genre.csv'), encoding='utf-8') as f:
-            reader = csv.DictReader(f)
-            for row in reader:
+    def import_genres(self, base_path):
+        with open(os.path.join(base_path, "genre.csv"),
+                  encoding="utf-8") as f:
+            for row in csv.DictReader(f):
                 Genre.objects.get_or_create(
-                    id=row['id'],
-                    name=row['name'],
-                    slug=row['slug']
+                    id=row["id"],
+                    name=row["name"],
+                    slug=row["slug"]
                 )
 
-        # 4. Импорт произведений
-        with open(os.path.join(base_path, 'titles.csv'), encoding='utf-8') as f:
-            reader = csv.DictReader(f)
-            for row in reader:
-                # Используем get_or_create для категории на случай отсутствия
-                category, _ = Category.objects.get_or_create(id=row['category'])
+    def import_titles(self, base_path):
+        with open(os.path.join(base_path, "titles.csv"),
+                  encoding="utf-8") as f:
+            for row in csv.DictReader(f):
+                category, _ = Category.objects.get_or_create(
+                    id=row["category"])
                 Title.objects.get_or_create(
-                    id=row['id'],
-                    name=row['name'],
-                    year=row['year'],
+                    id=row["id"],
+                    name=row["name"],
+                    year=row["year"],
                     category=category
                 )
 
-        # 5. Импорт связей произведений и жанров
-        with open(os.path.join(base_path, 'genre_title.csv'), encoding='utf-8') as f:
-            reader = csv.DictReader(f)
-            for row in reader:
-                title = Title.objects.get(id=row['title_id'])
-                genre = Genre.objects.get(id=row['genre_id'])
+    def import_genre_title_links(self, base_path):
+        with open(os.path.join(base_path, "genre_title.csv"),
+                  encoding="utf-8") as f:
+            for row in csv.DictReader(f):
+                title = Title.objects.get(id=row["title_id"])
+                genre = Genre.objects.get(id=row["genre_id"])
                 title.genre.add(genre)
 
-        # 6. Импорт отзывов (с проверкой существования пользователей и произведений)
-        with open(os.path.join(base_path, 'review.csv'), encoding='utf-8') as f:
-            reader = csv.DictReader(f)
-            for row in reader:
+    def import_reviews(self, base_path):
+        with open(os.path.join(base_path, "review.csv"),
+                  encoding="utf-8") as f:
+            for row in csv.DictReader(f):
                 try:
-                    # Проверяем существование пользователя
-                    user = MyUser.objects.get(id=row['author'])
-                    
-                    # Проверяем существование произведения
-                    title = Title.objects.get(id=row['title_id'])
-                    
+                    user = MyUser.objects.get(id=row["author"])
+                    title = Title.objects.get(id=row["title_id"])
                     Review.objects.get_or_create(
-                        id=row['id'],
+                        id=row["id"],
                         title=title,
-                        text=row['text'],
+                        text=row["text"],
                         author=user,
-                        score=row['score'],
-                        pub_date=row['pub_date']
+                        score=row["score"],
+                        pub_date=row["pub_date"]
                     )
                 except MyUser.DoesNotExist:
-                    self.stdout.write(self.style.ERROR(f"User {row['author']} not found for review {row['id']}"))
+                    self.stdout.write(self.style.ERROR(
+                        f"User {row["author"]}"
+                        f"not found for review {row["id"]}"
+                    ))
                 except Title.DoesNotExist:
-                    self.stdout.write(self.style.ERROR(f"Title {row['title_id']} not found for review {row['id']}"))
-
-        self.stdout.write(self.style.SUCCESS('Data imported successfully'))
+                    self.stdout.write(self.style.ERROR(
+                        (f"Title {row["title_id"]}"
+                         f"not found for review {row["id"]}")
+                    ))

@@ -8,7 +8,7 @@ class CreateValidateSerializers(serializers.ModelSerializer):
     email = serializers.EmailField(max_length=254,)
     username = serializers.RegexField(
         max_length=150,
-        regex=r'^[\w.@+-]+\Z',
+        regex=r"^[\w.@+-]+\Z",
         required=True,
         error_messages={
             "invalid": "Имя пользователя содержит недопустимые символы.",
@@ -21,7 +21,7 @@ class CreateValidateSerializers(serializers.ModelSerializer):
         reg_user = MyUser.objects.filter(username=username).first()
         reg_email = MyUser.objects.filter(email=email).first()
 
-        if username == 'me':
+        if username == "me":
             raise serializers.ValidationError({
                 "username": "Это имя недопустимо."
             })
@@ -41,20 +41,20 @@ class CreateValidateSerializers(serializers.ModelSerializer):
         return MyUser.objects.create(**validated_data)
 
     def update(self, instance, validated_data):
-        request = self.context.get('request', None)
+        request = self.context.get("request", None)
         user = request.user
         if user.role != MyUser.Role.ADMIN:
-            validated_data.pop('role', None)
+            validated_data.pop("role", None)
         return super().update(instance, validated_data)
 
 
 class UsersSerializers(CreateValidateSerializers):
     """Сериализатор для GET запроса пользователей"""
     class Meta:
-        fields = ['username',
-                  'email',
-                  'first_name',
-                  'last_name',
-                  'bio',
-                  'role']
+        fields = ["username",
+                  "email",
+                  "first_name",
+                  "last_name",
+                  "bio",
+                  "role"]
         model = MyUser
