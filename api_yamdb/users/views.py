@@ -4,10 +4,11 @@ from rest_framework.decorators import action
 
 from users.models import MyUser
 from users.serializers import UsersSerializers
-from users.permissions import IsAdminOnly, MyUserOnly
+from users.permissions import IsAdminOnly, ISMyUserOnly
 
 
 class UsersViewSet(viewsets.ModelViewSet):
+    """Пользователь"""
     queryset = MyUser.objects.all()
     serializer_class = UsersSerializers
     pagination_class = LimitOffsetPagination
@@ -20,7 +21,7 @@ class UsersViewSet(viewsets.ModelViewSet):
     @action(detail=False,
             methods=['get', 'patch'],
             url_path='me',
-            permission_classes=[permissions.IsAuthenticated, MyUserOnly])
+            permission_classes=[permissions.IsAuthenticated, ISMyUserOnly])
     def PersonalUser(self, request):
         user = MyUser.objects.get(username=request.user.username)
         if request.method == 'PATCH':

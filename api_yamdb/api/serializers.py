@@ -1,9 +1,12 @@
 from rest_framework import serializers
-from reviews.models import Category,Comment, Genre, Review, Title
+from django.db.models import Avg
 from rest_framework.generics import get_object_or_404
+
+from reviews.models import Category, Comment, Genre, Review, Title
 
 
 class CategorySerializer(serializers.ModelSerializer):
+    """Сериализатор для категорий"""
     class Meta:
         model = Category
         fields = ('name', 'slug')
@@ -11,6 +14,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class GenreSerializer(serializers.ModelSerializer):
+    """Сериализатор для жанров"""
     class Meta:
         model = Genre
         fields = ('name', 'slug')
@@ -18,16 +22,22 @@ class GenreSerializer(serializers.ModelSerializer):
 
 
 class TitleReadSerializer(serializers.ModelSerializer):
+    """Сериализатор для чтения произведений"""
     genre = GenreSerializer(many=True, read_only=True)
     category = CategorySerializer(read_only=True)
-    rating = serializers.IntegerField(read_only=True)
+    rating = serializers.SerializerMethodField()
 
     class Meta:
         model = Title
         fields = '__all__'
 
+    def get_rating(self, obj):
+        average = obj.reviews.aggregate(avg_score=Avg('score'))['avg_score']
+        return round(average, 1) if average is not None else None
+
 
 class TitleWriteSerializer(serializers.ModelSerializer):
+    """Сериализатор для изменения или добавления произведения"""
     genre = serializers.SlugRelatedField(
         slug_field='slug',
         queryset=Genre.objects.all(),
@@ -42,7 +52,9 @@ class TitleWriteSerializer(serializers.ModelSerializer):
         model = Title
         fields = '__all__'
 
+
 class ReviewSerializer(serializers.ModelSerializer):
+    """Сериализатор для отзывов"""
     title = serializers.SlugRelatedField(
         slug_field='name',
         read_only=True,
@@ -57,8 +69,12 @@ class ReviewSerializer(serializers.ModelSerializer):
         author = request.user
         title_id = self.context['view'].kwargs.get('title_id')
         title = get_object_or_404(Title, id=title_id)
-        if request.method == 'POST' and Review.objects.filter(title=title, author=author).exists():
-            raise serializers.ValidationError('Нельзя добавлять больше одного отзыва')
+        if request.method == 'POST' and Review.objects.filter(
+            title=title,
+            author=author
+        ).exists():
+            raise serializers.ValidationError(
+                'Нельзя добавлять больше одного отзыва')
         return data
 
     class Meta:
@@ -67,10 +83,7 @@ class ReviewSerializer(serializers.ModelSerializer):
 
 
 class CommentSerializer(serializers.ModelSerializer):
-    review = serializers.SlugRelatedField(
-        slug_field='text',
-        read_only=True
-    )
+    """Сериализатор для комментариев"""
     author = serializers.SlugRelatedField(
         slug_field='username',
         read_only=True
@@ -78,4 +91,4 @@ class CommentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Comment
-        fields = ['review','author','id']
+        fields = ['id', 'text', 'author', 'pub_date',]

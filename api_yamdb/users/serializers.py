@@ -4,6 +4,7 @@ from users.models import MyUser
 
 
 class CreateValidateSerializers(serializers.ModelSerializer):
+    """Сериализватор для регистрации пользователей"""
     email = serializers.EmailField(max_length=254,)
     username = serializers.RegexField(
         max_length=150,
@@ -38,7 +39,7 @@ class CreateValidateSerializers(serializers.ModelSerializer):
 
     def create(self, validated_data):
         return MyUser.objects.create(**validated_data)
-    
+
     def update(self, instance, validated_data):
         request = self.context.get('request', None)
         user = request.user
@@ -48,7 +49,12 @@ class CreateValidateSerializers(serializers.ModelSerializer):
 
 
 class UsersSerializers(CreateValidateSerializers):
-
+    """Сериализатор для GET запроса пользователей"""
     class Meta:
-        fields = ['username', 'email', 'first_name', 'last_name', 'bio', 'role']
+        fields = ['username',
+                  'email',
+                  'first_name',
+                  'last_name',
+                  'bio',
+                  'role']
         model = MyUser

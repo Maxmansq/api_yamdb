@@ -1,16 +1,17 @@
 from django.db.models import Avg
 from rest_framework import viewsets, mixins, filters
 from rest_framework.generics import get_object_or_404
+from rest_framework.pagination import LimitOffsetPagination
+
+from reviews.models import Category, Genre, Review, Title
+from api.permissions import (IsAdminOrReadOnly,
+                             IsAuthorOrModeratorOrAdminOrReadOnly)
 from .serializers import (CategorySerializer,
                           CommentSerializer,
                           GenreSerializer,
                           ReviewSerializer,
                           TitleReadSerializer,
                           TitleWriteSerializer)
-
-from reviews.models import Category, Genre, Review, Title
-from api.permissions import IsAdminOrReadOnly
-from rest_framework import permissions
 
 
 class CategoryViewSet(
@@ -19,6 +20,7 @@ class CategoryViewSet(
     mixins.DestroyModelMixin,
     viewsets.GenericViewSet,
 ):
+    """Категории"""
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = [IsAdminOrReadOnly,]
@@ -40,6 +42,7 @@ class GenreViewSet(
     mixins.DestroyModelMixin,
     viewsets.GenericViewSet,
 ):
+    """Жанры"""
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     permission_classes = [IsAdminOrReadOnly,]
@@ -56,22 +59,23 @@ class GenreViewSet(
 
 
 class TitleViewSet(viewsets.ModelViewSet):
+    """Произведения"""
     permission_classes = [IsAdminOrReadOnly,]
     queryset = Title.objects.all().order_by('id')
     http_method_names = ['get', 'patch', 'post', 'delete']
-    
+
     def get_queryset(self):
         queryset = super().get_queryset()
-        
+
         queryset = queryset.annotate(
             rating=Avg('reviews__score')
         )
-        
+
         category_slug = self.request.query_params.get('category')
         genre_slug = self.request.query_params.get('genre')
         name = self.request.query_params.get('name')
         year = self.request.query_params.get('year')
-        
+
         if category_slug:
             queryset = queryset.filter(category__slug=category_slug)
         if genre_slug:
@@ -80,7 +84,7 @@ class TitleViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(name__icontains=name)
         if year:
             queryset = queryset.filter(year=year)
-            
+
         return queryset
 
     def get_serializer_class(self):
@@ -88,9 +92,13 @@ class TitleViewSet(viewsets.ModelViewSet):
             return TitleReadSerializer
         return TitleWriteSerializer
 
+
 class ReviewViewSet(viewsets.ModelViewSet):
+    """Отзывы"""
     serializer_class = ReviewSerializer
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,) 
+    permission_classes = (IsAuthorOrModeratorOrAdminOrReadOnly,)
+    http_method_names = ['get', 'patch', 'post', 'delete']
+    pagination_class = LimitOffsetPagination
 
     def get_queryset(self):
         title = get_object_or_404(Title, pk=self.kwargs.get("title_id"))
@@ -104,9 +112,11 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 
 class CommentViewSet(viewsets.ModelViewSet):
+    """Комментарии"""
     serializer_class = CommentSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly,]
-    # Нужен премишен на автора коммента
+    permission_classes = (IsAuthorOrModeratorOrAdminOrReadOnly,)
+    http_method_names = ['get', 'patch', 'post', 'delete']
+    pagination_class = LimitOffsetPagination
 
     def get_queryset(self):
         review = get_object_or_404(Review, pk=self.kwargs.get("review_id"))
@@ -117,4 +127,3 @@ class CommentViewSet(viewsets.ModelViewSet):
         review_id = self.kwargs.get('review_id')
         review = get_object_or_404(Review, id=review_id, title=title_id)
         serializer.save(author=self.request.user, review=review)
-

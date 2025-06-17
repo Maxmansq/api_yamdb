@@ -1,12 +1,11 @@
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.db import models
-from django.contrib.auth import get_user_model
 
-User = get_user_model()
+from users.models import MyUser
 
 
 class Review(models.Model):
+    """Отзывы"""
     title = models.ForeignKey(
         'Title',
         on_delete=models.CASCADE,
@@ -14,7 +13,7 @@ class Review(models.Model):
     )
     text = models.TextField()
     author = models.ForeignKey(
-        User,
+        MyUser,
         on_delete=models.CASCADE,
         related_name='reviews'
     )
@@ -23,7 +22,7 @@ class Review(models.Model):
             MaxValueValidator(10),
             MinValueValidator(1)
         ]
-     )
+    )
     pub_date = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -40,6 +39,7 @@ class Review(models.Model):
 
 
 class Category(models.Model):
+    """Категории"""
     name = models.CharField(max_length=256)
     slug = models.SlugField(max_length=50, unique=True)
 
@@ -62,6 +62,7 @@ class Genre(models.Model):
 
 
 class Title(models.Model):
+    """Произвадения"""
     name = models.CharField(max_length=256)
     year = models.IntegerField()
     description = models.TextField(blank=True)
@@ -79,9 +80,11 @@ class Title(models.Model):
     def __str__(self):
         return self.name
 
+
 class Comment(models.Model):
+    """Комментарии"""
     author = models.ForeignKey(
-        User,
+        MyUser,
         on_delete=models.CASCADE,
         related_name='comments'
     )
@@ -98,4 +101,3 @@ class Comment(models.Model):
 
     def __str__(self):
         return (f'Коментарий от {self.author}')
-

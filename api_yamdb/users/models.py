@@ -3,7 +3,7 @@ from django.db import models
 
 
 class MyUser(AbstractUser):
-
+    """Кастомный user"""
     class Role(models.TextChoices):
         USER = 'user', 'Пользователь'
         MODERATOR = 'moderator', 'Модератор'

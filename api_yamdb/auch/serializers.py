@@ -1,11 +1,11 @@
 from rest_framework import serializers
-from rest_framework.validators import UniqueTogetherValidator
 
 from users.models import MyUser
 from users.serializers import CreateValidateSerializers
 
 
 class SignupSerializer(CreateValidateSerializers):
+    """Сериализатор для регистрации пользователя"""
 
     class Meta:
         model = MyUser
@@ -13,6 +13,7 @@ class SignupSerializer(CreateValidateSerializers):
 
 
 class TokenSerializer(serializers.Serializer):
+    """Сериализватор для получения JWT токена"""
     username = serializers.CharField(max_length=150)
     confirmation_code = serializers.CharField(max_length=150)
 

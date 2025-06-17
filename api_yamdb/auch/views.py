@@ -1,7 +1,6 @@
 from django.contrib.auth.tokens import default_token_generator
 from django.shortcuts import get_object_or_404
 from django.core.mail import send_mail
-from django.http import JsonResponse
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -15,6 +14,7 @@ from auch.serializers import SignupSerializer, TokenSerializer
 @api_view(['POST'])
 @permission_classes([AllowAny,])
 def signup(request):
+    """Регистрация и создание пользователя"""
     serializer = SignupSerializer(data=request.data)
     if not serializer.is_valid():
         return response.Response(serializer.errors,
@@ -37,6 +37,7 @@ def signup(request):
 @api_view(['POST'])
 @permission_classes([AllowAny,])
 def get_token(request):
+    """Получение JWT токена"""
     serializer = TokenSerializer(data=request.data)
     if not serializer.is_valid():
         return response.Response(serializer.errors,
