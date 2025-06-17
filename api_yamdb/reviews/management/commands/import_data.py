@@ -85,11 +85,11 @@ class Command(BaseCommand):
                     )
                 except MyUser.DoesNotExist:
                     self.stdout.write(self.style.ERROR(
-                        f"User {row["author"]}"
-                        f"not found for review {row["id"]}"
+                        f"User {row['author']}"
+                        f"not found for review {row['id']}"
                     ))
                 except Title.DoesNotExist:
                     self.stdout.write(self.style.ERROR(
-                        (f"Title {row["title_id"]}"
-                         f"not found for review {row["id"]}")
+                        (f"Title {row['title_id']}"
+                         f"not found for review {row['id']}")
                     ))
