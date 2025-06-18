@@ -1,6 +1,6 @@
 from rest_framework import serializers
-from django.db.models import Avg
 from rest_framework.generics import get_object_or_404
+from rest_framework.validators import UniqueTogetherValidator
 
 from reviews.models import Category, Comment, Genre, Review, Title
 
@@ -25,15 +25,11 @@ class TitleReadSerializer(serializers.ModelSerializer):
     """Сериализатор для чтения произведений"""
     genre = GenreSerializer(many=True, read_only=True)
     category = CategorySerializer(read_only=True)
-    rating = serializers.SerializerMethodField()
+    rating = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Title
         fields = "__all__"
-
-    def get_rating(self, obj):
-        average = obj.reviews.aggregate(avg_score=Avg("score"))["avg_score"]
-        return round(average, 1) if average is not None else None
 
 
 class TitleWriteSerializer(serializers.ModelSerializer):
@@ -54,32 +50,40 @@ class TitleWriteSerializer(serializers.ModelSerializer):
 
 
 class ReviewSerializer(serializers.ModelSerializer):
-    """Сериализатор для отзывов"""
-    title = serializers.SlugRelatedField(
-        slug_field="name",
-        read_only=True,
-    )
     author = serializers.SlugRelatedField(
-        slug_field="username",
-        read_only=True
+        slug_field='username',
+        read_only=True,
+        default=serializers.CurrentUserDefault()
     )
 
-    def validate(self, data):
-        request = self.context["request"]
-        author = request.user
-        title_id = self.context["view"].kwargs.get("title_id")
-        title = get_object_or_404(Title, id=title_id)
-        if request.method == "POST" and Review.objects.filter(
-            title=title,
-            author=author
-        ).exists():
-            raise serializers.ValidationError(
-                "Нельзя добавлять больше одного отзыва")
-        return data
+    title = serializers.PrimaryKeyRelatedField(
+        queryset=Title.objects.all(),
+        write_only=True,
+        required=False
+    )
 
     class Meta:
         model = Review
         fields = "__all__"
+        validators = [
+            UniqueTogetherValidator(
+                queryset=Review.objects.all(),
+                fields=['title', 'author'],
+                message='Нельзя добавлять больше одного отзыва'
+            )
+        ]
+
+    def to_internal_value(self, data):
+        data = data.copy()
+        if 'title' not in data:
+            title_id = self.context['view'].kwargs.get('title_id')
+            title = get_object_or_404(Title, id=title_id)
+            data['title'] = title.pk
+        return super().to_internal_value(data)
+
+    def create(self, validated_data):
+        validated_data['author'] = self.context['request'].user
+        return super().create(validated_data)
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -92,3 +96,4 @@ class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
         fields = ["id", "text", "author", "pub_date"]
+        read_only_fields = ['author']

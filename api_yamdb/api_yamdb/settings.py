@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt",
     "reviews.apps.ReviewsConfig",
     "api.apps.ApiConfig",
+    "core.apps.CoreConfig",
 ]
 
 REST_FRAMEWORK = {
@@ -119,7 +120,7 @@ STATIC_URL = "/static/"
 
 STATICFILES_DIRS = ((BASE_DIR / "static/"),)
 
-AUTH_USER_MODEL = "users.MyUser"
+AUTH_USER_MODEL = "users.CastomUser"
 
 LANGUAGE_CODE = "ru-RU"
 

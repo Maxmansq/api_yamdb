@@ -1,7 +1,11 @@
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.conf import settings
 
-from users.models import MyUser
+from core.models import SlugNameModel
+
+MAX_SCORE = 10
+MIN_SCORE = 1
 
 
 class Review(models.Model):
@@ -9,21 +13,26 @@ class Review(models.Model):
     title = models.ForeignKey(
         "Title",
         on_delete=models.CASCADE,
-        related_name="reviews"
+        related_name="reviews",
+        verbose_name="Заголовок",
     )
-    text = models.TextField()
+    text = models.TextField(verbose_name="Текст")
     author = models.ForeignKey(
-        MyUser,
+        settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name="reviews"
+        related_name="reviews",
+        verbose_name="Автор",
     )
-    score = models.IntegerField(
+    score = models.PositiveSmallIntegerField(
+        verbose_name="Оценка",
         validators=[
-            MaxValueValidator(10),
-            MinValueValidator(1)
+            MaxValueValidator(MAX_SCORE),
+            MinValueValidator(MIN_SCORE)
         ]
     )
-    pub_date = models.DateTimeField(auto_now_add=True)
+    pub_date = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="Дата создания")
 
     class Meta:
         ordering = ["-pub_date"]
@@ -38,10 +47,8 @@ class Review(models.Model):
         return f"Review by {self.author} for {self.title}"
 
 
-class Category(models.Model):
+class Category(SlugNameModel):
     """Категории"""
-    name = models.CharField(max_length=256)
-    slug = models.SlugField(max_length=50, unique=True)
 
     class Meta:
         ordering = ["name"]
@@ -50,9 +57,8 @@ class Category(models.Model):
         return self.name
 
 
-class Genre(models.Model):
-    name = models.CharField(max_length=256)
-    slug = models.SlugField(max_length=50, unique=True)
+class Genre(SlugNameModel):
+    """Жанры"""
 
     class Meta:
         ordering = ["name"]
@@ -63,10 +69,13 @@ class Genre(models.Model):
 
 class Title(models.Model):
     """Произвадения"""
-    name = models.CharField(max_length=256)
-    year = models.IntegerField()
+    name = models.CharField(max_length=256, verbose_name="Название")
+    year = models.PositiveSmallIntegerField(verbose_name="Год")
     description = models.TextField(blank=True)
-    genre = models.ManyToManyField(Genre, related_name="titles")
+    genre = models.ManyToManyField(
+        Genre,
+        related_name="titles",
+    )
     category = models.ForeignKey(
         Category,
         on_delete=models.SET_NULL,
@@ -84,7 +93,7 @@ class Title(models.Model):
 class Comment(models.Model):
     """Комментарии"""
     author = models.ForeignKey(
-        MyUser,
+        settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="comments"
     )
@@ -94,7 +103,9 @@ class Comment(models.Model):
         related_name="comments"
     )
     text = models.TextField()
-    pub_date = models.DateTimeField(auto_now_add=True)
+    pub_date = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="Дата создания")
 
     class Meta:
         ordering = ["-pub_date"]

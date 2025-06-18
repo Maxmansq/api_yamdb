@@ -1,6 +1,6 @@
 from rest_framework import permissions
 
-from users.models import MyUser
+from users.models import CastomUser
 
 
 class IsAdminOrReadOnly(permissions.BasePermission):
@@ -9,13 +9,13 @@ class IsAdminOrReadOnly(permissions.BasePermission):
         if request.method in permissions.SAFE_METHODS:
             return True
         return (request.user.is_authenticated
-                and request.user.effective_role == MyUser.Role.ADMIN)
+                and request.user.effective_role == CastomUser.Role.ADMIN)
 
     def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS:
             return True
         return (request.user.is_authenticated
-                and request.user.effective_role == MyUser.Role.ADMIN)
+                and request.user.effective_role == CastomUser.Role.ADMIN)
 
 
 class IsAuthorOrModeratorOrAdminOrReadOnly(permissions.BasePermission):
@@ -31,6 +31,6 @@ class IsAuthorOrModeratorOrAdminOrReadOnly(permissions.BasePermission):
 
         return (
             obj.author == request.user
-            or request.user.effective_role == MyUser.Role.ADMIN
-            or request.user.effective_role == MyUser.Role.MODERATOR
+            or request.user.effective_role == CastomUser.Role.ADMIN
+            or request.user.effective_role == CastomUser.Role.MODERATOR
         )

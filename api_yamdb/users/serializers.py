@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from users.models import MyUser
+from users.models import CastomUser
 
 
 class CreateValidateSerializers(serializers.ModelSerializer):
@@ -18,8 +18,8 @@ class CreateValidateSerializers(serializers.ModelSerializer):
     def validate(self, attrs):
         email = attrs.get("email")
         username = attrs.get("username")
-        reg_user = MyUser.objects.filter(username=username).first()
-        reg_email = MyUser.objects.filter(email=email).first()
+        reg_user = CastomUser.objects.filter(username=username).first()
+        reg_email = CastomUser.objects.filter(email=email).first()
 
         if username == "me":
             raise serializers.ValidationError({
@@ -38,12 +38,12 @@ class CreateValidateSerializers(serializers.ModelSerializer):
         return attrs
 
     def create(self, validated_data):
-        return MyUser.objects.create(**validated_data)
+        return CastomUser.objects.create(**validated_data)
 
     def update(self, instance, validated_data):
         request = self.context.get("request", None)
         user = request.user
-        if user.role != MyUser.Role.ADMIN:
+        if user.role != CastomUser.Role.ADMIN:
             validated_data.pop("role", None)
         return super().update(instance, validated_data)
 
@@ -57,4 +57,4 @@ class UsersSerializers(CreateValidateSerializers):
                   "last_name",
                   "bio",
                   "role"]
-        model = MyUser
+        model = CastomUser

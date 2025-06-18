@@ -7,7 +7,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import status, response
 from django.conf import settings
 
-from users.models import MyUser
+from users.models import CastomUser
 from auch.serializers import SignupSerializer, TokenSerializer
 
 
@@ -16,13 +16,11 @@ from auch.serializers import SignupSerializer, TokenSerializer
 def signup(request):
     """Регистрация и создание пользователя"""
     serializer = SignupSerializer(data=request.data)
-    if not serializer.is_valid():
-        return response.Response(serializer.errors,
-                                 status=status.HTTP_400_BAD_REQUEST)
+    serializer.is_valid(raise_exception=True)
     email = serializer.validated_data["email"]
     username = serializer.validated_data["username"]
-    user, _ = MyUser.objects.get_or_create(username=username,
-                                           defaults={"email": email},)
+    user, _ = CastomUser.objects.get_or_create(username=username,
+                                               defaults={"email": email},)
     confirmation_code = default_token_generator.make_token(user)
     send_mail(
         subject="Аунтефикация пользователей YAMDB",
@@ -39,12 +37,10 @@ def signup(request):
 def get_token(request):
     """Получение JWT токена"""
     serializer = TokenSerializer(data=request.data)
-    if not serializer.is_valid():
-        return response.Response(serializer.errors,
-                                 status=status.HTTP_400_BAD_REQUEST)
+    serializer.is_valid(raise_exception=True)
     username = serializer.validated_data["username"]
     confirmation_code = serializer.validated_data["confirmation_code"]
-    user = get_object_or_404(MyUser, username=username)
+    user = get_object_or_404(CastomUser, username=username)
     if default_token_generator.check_token(user, confirmation_code):
         refresh = RefreshToken.for_user(user)
         return response.Response({"token": str(refresh.access_token)},

@@ -4,7 +4,7 @@ import os
 from django.core.management.base import BaseCommand
 
 from reviews.models import Category, Genre, Title, Review
-from users.models import MyUser
+from users.models import CastomUser
 
 
 class Command(BaseCommand):
@@ -19,7 +19,7 @@ class Command(BaseCommand):
 
         with open(users_path, encoding="utf-8") as f:
             for row in csv.DictReader(f):
-                MyUser.objects.get_or_create(
+                CastomUser.objects.get_or_create(
                     id=row["id"],
                     username=row["username"],
                     email=row["email"],
@@ -71,7 +71,7 @@ class Command(BaseCommand):
                   encoding="utf-8") as f:
             for row in csv.DictReader(f):
                 try:
-                    user = MyUser.objects.get(id=row["author"])
+                    user = CastomUser.objects.get(id=row["author"])
                     title = Title.objects.get(id=row["title_id"])
                     Review.objects.get_or_create(
                         id=row["id"],
@@ -81,7 +81,7 @@ class Command(BaseCommand):
                         score=row["score"],
                         pub_date=row["pub_date"]
                     )
-                except MyUser.DoesNotExist:
+                except CastomUser.DoesNotExist:
                     self.stdout.write(self.style.ERROR(
                         f"User {row['author']}"
                         f"not found for review {row['id']}"
