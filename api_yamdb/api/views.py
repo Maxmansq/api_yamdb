@@ -104,8 +104,12 @@ class ReviewViewSet(viewsets.ModelViewSet):
         return title.reviews.all()
 
     def perform_create(self, serializer):
-        title = self.get_title()
-        serializer.save(author=self.request.user, title=title)
+        serializer.save(author=self.request.user, title=serializer.context['title'])
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['title'] = self.get_title()
+        return context
 
 
 class CommentViewSet(viewsets.ModelViewSet):
@@ -130,7 +134,8 @@ class CommentViewSet(viewsets.ModelViewSet):
         )
 
     def get_queryset(self):
-        review = self.get_review(self.kwargs.get("review_id"))
+        review = self.get_review()
+        # review = self.get_review(self.kwargs.get("review_id"))
         return review.comments.all()
 
     def perform_create(self, serializer):

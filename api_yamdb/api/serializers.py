@@ -48,30 +48,34 @@ class TitleWriteSerializer(serializers.ModelSerializer):
         model = Title
         fields = "__all__"
 
-
 class ReviewSerializer(serializers.ModelSerializer):
+    class CurrentTitleDefault:
+        requires_context = True
+
+        def __call__(self, serializer_field):
+            return serializer_field.context['title']
+
     author = serializers.SlugRelatedField(
         slug_field='username',
         read_only=True,
         default=serializers.CurrentUserDefault()
     )
+    title = serializers.PrimaryKeyRelatedField(
+        queryset=Title.objects.all(),
+        default=CurrentTitleDefault(),
+        write_only=True
+    )
 
     class Meta:
         model = Review
-        fields = ['id', 'text', 'score', 'pub_date', 'author']
+        fields = ['id', 'text', 'score', 'pub_date', 'author', 'title']
         validators = [
             UniqueTogetherValidator(
                 queryset=Review.objects.all(),
-                fields=['title', 'author'],
+                fields=["title", "author"],
                 message='Нельзя добавлять больше одного отзыва'
             )
         ]
-
-    def create(self, validated_data):
-        validated_data['author'] = self.context['request'].user
-        validated_data['title'] = self.context.get('title')
-        return super().create(validated_data)
-
 
 class CommentSerializer(serializers.ModelSerializer):
     """Сериализатор для комментариев"""
