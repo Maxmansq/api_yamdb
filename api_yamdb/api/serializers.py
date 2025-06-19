@@ -56,15 +56,9 @@ class ReviewSerializer(serializers.ModelSerializer):
         default=serializers.CurrentUserDefault()
     )
 
-    title = serializers.PrimaryKeyRelatedField(
-        queryset=Title.objects.all(),
-        write_only=True,
-        required=False
-    )
-
     class Meta:
         model = Review
-        fields = "__all__"
+        fields = ['id', 'text', 'score', 'pub_date', 'author']
         validators = [
             UniqueTogetherValidator(
                 queryset=Review.objects.all(),
@@ -73,16 +67,9 @@ class ReviewSerializer(serializers.ModelSerializer):
             )
         ]
 
-    def to_internal_value(self, data):
-        data = data.copy()
-        if 'title' not in data:
-            title_id = self.context['view'].kwargs.get('title_id')
-            title = get_object_or_404(Title, id=title_id)
-            data['title'] = title.pk
-        return super().to_internal_value(data)
-
     def create(self, validated_data):
         validated_data['author'] = self.context['request'].user
+        validated_data['title'] = self.context.get('title')
         return super().create(validated_data)
 
 

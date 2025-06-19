@@ -91,3 +91,15 @@ class Command(BaseCommand):
                         (f"Title {row['title_id']}"
                          f"not found for review {row['id']}")
                     ))
+
+    def handle(self, *args, **options):
+        base_path = "static/data"
+
+        self.import_users(base_path)
+        self.import_categories(base_path)
+        self.import_genres(base_path)
+        self.import_titles(base_path)
+        self.import_genre_title_links(base_path)
+        self.import_reviews(base_path)
+
+        self.stdout.write(self.style.SUCCESS("Импорт данных завершён успешно."))
