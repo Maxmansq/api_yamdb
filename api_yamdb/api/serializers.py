@@ -48,7 +48,6 @@ class TitleWriteSerializer(serializers.ModelSerializer):
         model = Title
         fields = "__all__"
 
-
 class ReviewSerializer(serializers.ModelSerializer):
     class CurrentTitleDefault:
         requires_context = True
@@ -60,6 +59,11 @@ class ReviewSerializer(serializers.ModelSerializer):
         slug_field='username',
         read_only=True,
         default=serializers.CurrentUserDefault()
+    )
+    title = serializers.PrimaryKeyRelatedField(
+        queryset=Title.objects.all(),
+        default=CurrentTitleDefault(),
+        write_only=True
     )
 
     title = serializers.PrimaryKeyRelatedField(
@@ -78,12 +82,6 @@ class ReviewSerializer(serializers.ModelSerializer):
                 message='Нельзя добавлять больше одного отзыва'
             )
         ]
-
-    def create(self, validated_data):
-        validated_data['author'] = self.context['request'].user
-        validated_data['title'] = self.context.get('title')
-        return super().create(validated_data)
-
 
 class CommentSerializer(serializers.ModelSerializer):
     """Сериализатор для комментариев"""
