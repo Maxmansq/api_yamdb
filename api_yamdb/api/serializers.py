@@ -50,19 +50,31 @@ class TitleWriteSerializer(serializers.ModelSerializer):
 
 
 class ReviewSerializer(serializers.ModelSerializer):
+    class CurrentTitleDefault:
+        requires_context = True
+
+        def __call__(self, serializer_field):
+            return serializer_field.context['title']
+
     author = serializers.SlugRelatedField(
         slug_field='username',
         read_only=True,
         default=serializers.CurrentUserDefault()
     )
 
+    title = serializers.PrimaryKeyRelatedField(
+        queryset=Title.objects.all(),
+        default=CurrentTitleDefault(),
+        write_only=True
+    )
+
     class Meta:
         model = Review
-        fields = ['id', 'text', 'score', 'pub_date', 'author']
+        fields = ['id', 'text', 'score', 'pub_date', 'author', 'title']
         validators = [
             UniqueTogetherValidator(
                 queryset=Review.objects.all(),
-                fields=['title', 'author'],
+                fields=["title", "author"],
                 message='Нельзя добавлять больше одного отзыва'
             )
         ]
