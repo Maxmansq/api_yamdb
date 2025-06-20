@@ -1,5 +1,4 @@
 from rest_framework import serializers
-from rest_framework.generics import get_object_or_404
 from rest_framework.validators import UniqueTogetherValidator
 
 from reviews.models import Category, Comment, Genre, Review, Title
@@ -48,6 +47,7 @@ class TitleWriteSerializer(serializers.ModelSerializer):
         model = Title
         fields = "__all__"
 
+
 class ReviewSerializer(serializers.ModelSerializer):
     class CurrentTitleDefault:
         requires_context = True
@@ -66,12 +66,6 @@ class ReviewSerializer(serializers.ModelSerializer):
         write_only=True
     )
 
-    title = serializers.PrimaryKeyRelatedField(
-        queryset=Title.objects.all(),
-        default=CurrentTitleDefault(),
-        write_only=True
-    )
-
     class Meta:
         model = Review
         fields = ['id', 'text', 'score', 'pub_date', 'author', 'title']
@@ -82,6 +76,7 @@ class ReviewSerializer(serializers.ModelSerializer):
                 message='Нельзя добавлять больше одного отзыва'
             )
         ]
+
 
 class CommentSerializer(serializers.ModelSerializer):
     """Сериализатор для комментариев"""

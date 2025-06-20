@@ -102,4 +102,5 @@ class Command(BaseCommand):
         self.import_genre_title_links(base_path)
         self.import_reviews(base_path)
 
-        self.stdout.write(self.style.SUCCESS("Импорт данных завершён успешно."))
+        self.stdout.write(self.style.SUCCESS("Импорт данных"
+                                             "завершён успешно."))
